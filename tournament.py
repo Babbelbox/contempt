@@ -112,10 +112,16 @@ def run_tournament(
                         black_move_limit=b_limit,
                         white_overrides=w_ov,
                         black_overrides=b_ov,
+                        stop_event=stop_event,
                     )
                     game.headers["Opening"] = opening["name"]
                     result = game.headers["Result"]
                     moves  = game.end().ply()
+
+                    # Aborted mid-game by stop_event — gooi de partij weg en stop
+                    if result == "*" and stop_event and stop_event.is_set():
+                        break
+
                     print(f"  -> {result} ({moves} halve zetten)")
 
                     # Filter: bepaal of deze partij opgeslagen wordt

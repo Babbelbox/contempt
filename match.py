@@ -42,6 +42,7 @@ def play_game(
     black_move_limit: dict | None = None,
     white_overrides: dict | None = None,
     black_overrides: dict | None = None,
+    stop_event=None,
 ) -> chess.pgn.Game:
     """
     Speel één partij. Geeft een chess.pgn.Game terug.
@@ -85,7 +86,11 @@ def play_game(
         node = game
         resign_result = None
 
+        stopped = False
         while not board.is_game_over(claim_draw=True):
+            if stop_event and stop_event.is_set():
+                stopped = True
+                break
             engine = white_engine if board.turn == chess.WHITE else black_engine
             limit  = white_limit   if board.turn == chess.WHITE else black_limit
             play_result = engine.play(board, limit, info=chess.engine.INFO_SCORE)
@@ -106,7 +111,10 @@ def play_game(
                         resign_result = "0-1"
                         break
 
-        game.headers["Result"] = resign_result or board.result(claim_draw=True)
+        if stopped:
+            game.headers["Result"] = "*"
+        else:
+            game.headers["Result"] = resign_result or board.result(claim_draw=True)
 
     return game
 

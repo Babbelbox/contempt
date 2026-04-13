@@ -247,7 +247,7 @@ with tab_positie:
 # ===========================================================================
 st.divider()
 
-start_col, stop_col, _ = st.columns([1, 1, 4])
+start_col, stop_col, _ = st.columns([2, 1, 3])
 
 with start_col:
     start_geklikt = st.button(
@@ -256,6 +256,9 @@ with start_col:
         disabled=st.session_state.running,
         use_container_width=True,
     )
+    # Voortgangsbalk direct onder Start-knop
+    voortgang_placeholder = st.empty()
+    status_placeholder    = st.empty()
 
 with stop_col:
     stop_geklikt = st.button(
@@ -265,12 +268,6 @@ with stop_col:
     )
     if stop_geklikt and st.session_state.stop_event:
         st.session_state.stop_event.set()
-
-# ===========================================================================
-# VOORTGANG — buiten tabs zodat die altijd zichtbaar is
-# ===========================================================================
-voortgang_placeholder = st.empty()
-status_placeholder    = st.empty()
 
 # ===========================================================================
 # TAB 3 — Resultaten (tabel + downloads)
@@ -409,7 +406,9 @@ if st.session_state.running:
     # Toon altijd de actuele voortgang vanuit session_state (blijft correct na elke rerun)
     done  = st.session_state.progress_done
     total = st.session_state.progress_total
-    if total > 0:
+    if st.session_state.stop_event and st.session_state.stop_event.is_set():
+        voortgang_placeholder.warning("⏳ Stoppen na huidige zet...")
+    elif total > 0:
         pct = done / total
         voortgang_placeholder.progress(pct, text=f"Partij {done}/{total} — {pct*100:.0f}%")
     else:
