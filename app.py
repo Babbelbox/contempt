@@ -348,18 +348,28 @@ if start_geklikt and not st.session_state.running:
     save_filter = filter_map.get(ss.get("filter_keuze", "Alle partijen"), "all")
     aantal_partijen = int(ss.get("aantal_partijen", 2))
 
-    # --- Openingslijst ---
+    # --- Openingslijst & partijen per opening ---
+    # aantal_partijen = totaal gewenst; verdeel slim over openingen
     if ss.start_fen:
         openings = [{"name": "Aangepaste positie", "fen": ss.start_fen}]
+        games_per_opening = aantal_partijen
     else:
-        openings = load_openings(config.OPENINGS_FILE)
+        alle_openings = load_openings(config.OPENINGS_FILE)
+        if aantal_partijen <= len(alle_openings):
+            # Minder dan 24 partijen: neem de eerste N openingen, 1 game elk
+            openings = alle_openings[:aantal_partijen]
+            games_per_opening = 1
+        else:
+            # Meer partijen: gebruik alle openingen, meerdere games per opening
+            openings = alle_openings
+            games_per_opening = aantal_partijen // len(alle_openings)
 
     # --- State ---
     ss.running          = True
     ss.results          = []
     ss.stop_event       = threading.Event()
     ss.progress_done    = 0
-    ss.progress_total   = len(openings) * aantal_partijen  # direct zetten zodat % meteen klopt
+    ss.progress_total   = len(openings) * games_per_opening  # direct zetten zodat % meteen klopt
     ss.running_engines  = [wit, zw]
     q = queue.Queue()
     ss.progress_q = q
@@ -387,7 +397,7 @@ if start_geklikt and not st.session_state.running:
                 white_name=wit,
                 black_name=zw,
                 openings=openings,
-                games_per_opening=aantal_partijen,
+                games_per_opening=games_per_opening,
                 white_move_limit=white_move_limit,
                 black_move_limit=black_move_limit,
                 white_overrides=white_overrides,
