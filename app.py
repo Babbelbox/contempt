@@ -7,7 +7,6 @@ Starten:
 import datetime
 import io
 import queue
-import subprocess
 import threading
 from pathlib import Path
 
@@ -16,7 +15,7 @@ import chess.pgn
 import streamlit as st
 
 import config
-from tournament import load_openings, run_tournament
+from tournament import run_tournament
 
 # ---------------------------------------------------------------------------
 # Pagina-configuratie
@@ -270,11 +269,6 @@ with stop_col:
     )
     if stop_geklikt and st.session_state.stop_event:
         st.session_state.stop_event.set()
-        # Kill engine processes onmiddellijk zodat de lopende zet direct stopt
-        for _name in st.session_state.running_engines:
-            if _name in config.ENGINE_PATHS:
-                _exe = Path(config.ENGINE_PATHS[_name]).name
-                subprocess.run(["taskkill", "/F", "/IM", _exe], capture_output=True)
 
 # ===========================================================================
 # TAB 3 — Resultaten (tabel + downloads)
@@ -348,21 +342,12 @@ if start_geklikt and not st.session_state.running:
     save_filter = filter_map.get(ss.get("filter_keuze", "Alle partijen"), "all")
     aantal_partijen = int(ss.get("aantal_partijen", 2))
 
-    # --- Openingslijst & partijen per opening ---
-    # aantal_partijen = totaal gewenst; verdeel slim over openingen
+    # --- Opening: altijd dezelfde startpositie voor alle partijen ---
     if ss.start_fen:
         openings = [{"name": "Aangepaste positie", "fen": ss.start_fen}]
-        games_per_opening = aantal_partijen
     else:
-        alle_openings = load_openings(config.OPENINGS_FILE)
-        if aantal_partijen <= len(alle_openings):
-            # Minder dan 24 partijen: neem de eerste N openingen, 1 game elk
-            openings = alle_openings[:aantal_partijen]
-            games_per_opening = 1
-        else:
-            # Meer partijen: gebruik alle openingen, meerdere games per opening
-            openings = alle_openings
-            games_per_opening = aantal_partijen // len(alle_openings)
+        openings = [{"name": "Beginpositie", "fen": chess.Board().fen()}]
+    games_per_opening = aantal_partijen
 
     # --- State ---
     ss.running          = True
@@ -441,7 +426,12 @@ if st.session_state.running:
 
         if bericht is None:
             st.session_state.running = False
-            voortgang_placeholder.progress(1.0, text=f"Klaar! {st.session_state.progress_total} partijen gespeeld.")
+            done = st.session_state.progress_done
+            total = st.session_state.progress_total
+            if st.session_state.stop_event and st.session_state.stop_event.is_set():
+                voortgang_placeholder.warning(f"Gestopt na {done} van {total} partijen.")
+            else:
+                voortgang_placeholder.progress(1.0, text=f"Klaar! {done} van {total} partijen gespeeld.")
             st.rerun()
             break
 
