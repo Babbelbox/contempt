@@ -7,6 +7,7 @@ Starten:
 import datetime
 import io
 import queue
+import subprocess
 import threading
 from pathlib import Path
 
@@ -76,6 +77,7 @@ if "start_fen"            not in st.session_state: st.session_state.start_fen   
 if "stop_event"           not in st.session_state: st.session_state.stop_event           = None
 if "progress_done"        not in st.session_state: st.session_state.progress_done        = 0
 if "progress_total"       not in st.session_state: st.session_state.progress_total       = 0
+if "running_engines"      not in st.session_state: st.session_state.running_engines      = []
 # Widget-defaults (alleen gezet bij eerste bezoek, daarna beheert Streamlit de state)
 if "nodes_wit"            not in st.session_state: st.session_state.nodes_wit            = 500_000
 if "nodes_zwart"          not in st.session_state: st.session_state.nodes_zwart          = 500_000
@@ -268,6 +270,11 @@ with stop_col:
     )
     if stop_geklikt and st.session_state.stop_event:
         st.session_state.stop_event.set()
+        # Kill engine processes onmiddellijk zodat de lopende zet direct stopt
+        for _name in st.session_state.running_engines:
+            if _name in config.ENGINE_PATHS:
+                _exe = Path(config.ENGINE_PATHS[_name]).name
+                subprocess.run(["taskkill", "/F", "/IM", _exe], capture_output=True)
 
 # ===========================================================================
 # TAB 3 — Resultaten (tabel + downloads)
@@ -348,11 +355,12 @@ if start_geklikt and not st.session_state.running:
         openings = load_openings(config.OPENINGS_FILE)
 
     # --- State ---
-    ss.running        = True
-    ss.results        = []
-    ss.stop_event     = threading.Event()
-    ss.progress_done  = 0
-    ss.progress_total = 0
+    ss.running          = True
+    ss.results          = []
+    ss.stop_event       = threading.Event()
+    ss.progress_done    = 0
+    ss.progress_total   = len(openings) * aantal_partijen  # direct zetten zodat % meteen klopt
+    ss.running_engines  = [wit, zw]
     q = queue.Queue()
     ss.progress_q = q
 

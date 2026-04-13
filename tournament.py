@@ -152,6 +152,9 @@ def run_tournament(
                     csvfile.flush()
 
                 except Exception as exc:
+                    # Als stop_event gezet is: engines zijn gekilld → exception verwacht, stil stoppen
+                    if stop_event and stop_event.is_set():
+                        break
                     print(f"  [fout] {exc}")
                     row = {"opening": opening["name"], "game_nr": i + 1, "white": w, "black": b,
                            "result": "ERROR", "moves": 0, "white_contempt": "-", "black_contempt": "-",
