@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Engine binaries (too large for GitHub)
+engines/
+
+# Temporary extracted engine folders
+_tmp_berserk/
+
+# Large source build directory
+src/sf18/
+
+# Tournament output (generated at runtime)
+games/
+results/
+
+# OS
+.DS_Store
+Thumbs.db

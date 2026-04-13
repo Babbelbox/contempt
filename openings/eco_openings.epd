@@ -1,0 +1,46 @@
+# ECO-openingsposities voor engine-onderzoek
+# Formaat: <FEN (4 velden)> id "<naam>";
+# Voeg zelf posities toe door regels te kopiëren en de FEN aan te passen.
+
+rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - id "Beginpositie";
+
+# --- Open spelen (1.e4) ---
+rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - id "Koningsspel (1.e4 e5)";
+rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - id "Siciliaansch (1.e4 c5)";
+rnbqkbnr/pppp1ppp/4p3/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - id "Frans (1.e4 e6)";
+rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - id "Caro-Kann (1.e4 d5 variatie)";
+rnbqkbnr/ppp1pppp/3p4/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - id "Pirc/Modern (1.e4 d6)";
+
+# Siciliaansch - varianten na 1.e4 c5 2.Nf3
+rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - id "Siciliaansch na 2.Nf3";
+r1bqkbnr/pp1ppppp/2n5/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - id "Siciliaansch Paulsen (2...Nc6)";
+rnbqkb1r/pp1ppppp/5n2/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - id "Siciliaansch Kan (2...Nf6)";
+
+# Spaans (Ruy Lopez)
+r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R b KQkq - id "Spaans (Ruy Lopez)";
+r1bqkbnr/1ppp1ppp/p1n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R w KQkq - id "Spaans Morphy (3...a6)";
+
+# Italiaans
+r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R b KQkq - id "Italiaans (Giuoco Piano basis)";
+
+# --- Gesloten spelen (1.d4) ---
+rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq - id "Damebauerspel (1.d4)";
+rnbqkbnr/ppp1pppp/8/3p4/3P4/8/PPP1PPPP/RNBQKBNR w KQkq - id "Dame's Gambiet basis";
+rnbqkbnr/ppp1pppp/8/3p4/2PP4/8/PP2PPPP/RNBQKBNR b KQkq - id "Dame's Gambiet (2.c4)";
+rnbqkb1r/ppp1pppp/5n2/3p4/2PP4/8/PP2PPPP/RNBQKBNR w KQkq - id "Dame's Gambiet afgewezen (2...Nf6)";
+
+# Koningsindisch
+rnbqkb1r/pppppp1p/5np1/8/2PP4/8/PP2PPPP/RNBQKBNR w KQkq - id "Koningsindisch (basis)";
+rnbqk2r/ppppppbp/5np1/8/2PPP3/2N5/PP3PPP/R1BQKBNR b KQkq - id "Koningsindisch Klassiek (4.e4)";
+
+# Nimzowitsch-Indisch
+rnbqk2r/pppp1ppp/4pn2/8/1bPP4/2N5/PP2PPPP/R1BQKBNR w KQkq - id "Nimzowitsch-Indisch (4.Nc3 Bb4)";
+
+# --- Flankopeningen ---
+rnbqkbnr/pppppppp/8/8/8/5NP1/PPPPPP1P/RNBQKB1R b KQkq - id "Reti opening (1.Nf3 2.g3)";
+rnbqkbnr/pppppppp/8/8/2P5/8/PP1PPPPP/RNBQKBNR b KQkq - id "Engelse opening (1.c4)";
+rnbqkbnr/pp1ppppp/8/2p5/2P5/8/PP1PPPPP/RNBQKBNR w KQkq - id "Engelse Siciliaansch (1.c4 c5)";
+
+# --- Londonsysteem ---
+rnbqkbnr/ppp1pppp/8/3p4/3P4/2N5/PPP1PPPP/R1BQKBNR b KQkq - id "Londonsysteem basis";
+rnbqkb1r/ppp1pppp/5n2/3p4/3P1B2/2N5/PPP1PPPP/R2QKBNR b KQkq - id "Londonsysteem (met Bf4)";
