@@ -16,6 +16,9 @@ src/sf18/
 games/
 results/
 
+# Gebruikersinstellingen (lokaal, niet delen via git)
+defaults.json
+
 # OS
 .DS_Store
 Thumbs.db
