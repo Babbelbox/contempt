@@ -36,6 +36,7 @@ ENGINE_PATHS = {
     "stockfish18":  BASE_DIR / "engines" / "stockfish18.exe",   # SF 18 origineel (geen Contempt)
     "stockfish":    BASE_DIR / "engines" / "stockfish.exe",     # SF 17 (geen Contempt)
     "berserk":      BASE_DIR / "engines" / "berserk.exe",
+    "lc0":          BASE_DIR / "engines" / "lc0.exe",           # Leela Chess Zero (CPU-build)
 }
 
 # =============================================================================
@@ -65,6 +66,10 @@ ENGINE_OPTIONS = {
     "berserk": {
         "Hash":    128,
         "Threads": 4,
+    },
+    "lc0": {
+        "Threads": 4,
+        # Contempt niet ondersteund door lc0 — wordt automatisch overgeslagen
     },
 }
 
