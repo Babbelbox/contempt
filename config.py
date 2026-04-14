@@ -46,25 +46,25 @@ ENGINE_PATHS = {
 ENGINE_OPTIONS = {
     "stockfish18c": {
         "Hash":     256,
-        "Threads":  1,
+        "Threads":  4,
         "Contempt": CONTEMPT,
     },
     "stockfish13": {
         "Hash":     256,
-        "Threads":  1,
+        "Threads":  4,
         "Contempt": CONTEMPT,
     },
     "stockfish18": {
         "Hash":    256,
-        "Threads": 1,
+        "Threads": 4,
     },
     "stockfish": {
         "Hash":    256,
-        "Threads": 1,
+        "Threads": 4,
     },
     "berserk": {
         "Hash":    128,
-        "Threads": 1,
+        "Threads": 4,
     },
 }
 
