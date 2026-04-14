@@ -186,8 +186,8 @@ def _voortgang_fragment():
 # ---------------------------------------------------------------------------
 # Tabs
 # ---------------------------------------------------------------------------
-tab_instellingen, tab_positie, tab_resultaten = st.tabs(
-    ["⚙️ Instellingen", "♟ Positie", "📊 Resultaten"]
+tab_instellingen, tab_resultaten = st.tabs(
+    ["⚙️ Instellingen", "📊 Resultaten"]
 )
 
 # ===========================================================================
@@ -313,10 +313,8 @@ with tab_instellingen:
                 st.session_state[_k] = _FACTORY[_k]
             st.rerun()
 
-# ===========================================================================
-# TAB 2 — Positie
-# ===========================================================================
-with tab_positie:
+    st.divider()
+
     st.subheader("Startpositie")
 
     gebruik_beginpositie = st.checkbox("Gebruik standaard beginpositie", value=False, key="gebruik_beginpositie")
