@@ -59,6 +59,7 @@ def run_tournament(
     save_filter: str = "all",       # "all" | "white_wins" | "black_wins" | "decisive"
     progress_callback: Callable | None = None,
     stop_event=None,                # threading.Event — zet om te stoppen
+    wissel_kleuren: bool = True,    # False = white_name speelt altijd wit
 ) -> list[dict]:
     """
     Draait het tournament. Geeft lijst van resultaten terug.
@@ -91,14 +92,14 @@ def run_tournament(
             for i in range(games_per_opening):
                 if stop_event and stop_event.is_set():
                     break
-                if i % 2 == 0:
-                    w, b = white_name, black_name
-                    w_ov, b_ov = white_overrides, black_overrides
-                    w_limit, b_limit = white_move_limit, black_move_limit
-                else:
+                if wissel_kleuren and i % 2 != 0:
                     w, b = black_name, white_name
                     w_ov, b_ov = black_overrides, white_overrides
                     w_limit, b_limit = black_move_limit, white_move_limit
+                else:
+                    w, b = white_name, black_name
+                    w_ov, b_ov = white_overrides, black_overrides
+                    w_limit, b_limit = white_move_limit, black_move_limit
 
                 done += 1
                 print(f"[{done}/{total}] {opening['name']} | {w} vs {b}")

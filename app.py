@@ -435,6 +435,7 @@ if start_geklikt and not st.session_state.running:
     _wit   = ss.get("wit_engine",   engine_namen_now[0])
     _zwart = ss.get("zwart_engine", engine_namen_now[min(1, len(engine_namen_now)-1)])
     _kleur = ss.get("kleur_modus",  "Wissel per partij")
+    wissel_kleuren = (_kleur == "Wissel per partij")
     if _kleur == "Altijd wit-engine als wit":
         wit, zw = _wit, _zwart
     elif _kleur == "Altijd zwart-engine als wit":
@@ -515,6 +516,7 @@ if start_geklikt and not st.session_state.running:
                 save_filter=save_filter,
                 progress_callback=callback,
                 stop_event=stop_event,
+                wissel_kleuren=wissel_kleuren,
             )
         except Exception:
             import traceback
