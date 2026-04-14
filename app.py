@@ -37,6 +37,7 @@ _FACTORY = {
     "tijd_wit":        1.0,
     "tijd_zwart":      1.0,
     "filter_keuze":    "Alle partijen",
+    "pgn_map":         str(config.GAMES_DIR),
 }
 
 def _load_defaults() -> dict:
@@ -130,6 +131,7 @@ if "wit_engine"           not in st.session_state: st.session_state.wit_engine  
 if "zwart_engine"         not in st.session_state: st.session_state.zwart_engine         = _D["zwart_engine"]
 if "kleur_modus"          not in st.session_state: st.session_state.kleur_modus          = _D["kleur_modus"]
 if "filter_keuze"         not in st.session_state: st.session_state.filter_keuze         = _D["filter_keuze"]
+if "pgn_map"              not in st.session_state: st.session_state.pgn_map              = _D["pgn_map"]
 if "gebruik_beginpositie" not in st.session_state: st.session_state.gebruik_beginpositie = False
 if "invoer_methode"       not in st.session_state: st.session_state.invoer_methode       = "PGN"
 if "pgn_tekst"            not in st.session_state: st.session_state.pgn_tekst            = ""
@@ -286,6 +288,15 @@ with tab_instellingen:
 
     st.divider()
 
+    st.subheader("Opslaglocatie")
+    st.text_input(
+        "Map voor PGN-bestanden",
+        help="Pad naar de map waar partijen worden opgeslagen. Wordt aangemaakt als die nog niet bestaat.",
+        key="pgn_map",
+    )
+
+    st.divider()
+
     _save_col, _reset_col, _ = st.columns([2, 2, 4])
     with _save_col:
         if st.button("Sla op als standaard", use_container_width=True):
@@ -303,6 +314,7 @@ with tab_instellingen:
                 "tijd_wit":        st.session_state.get("tijd_wit",        _D["tijd_wit"]),
                 "tijd_zwart":      st.session_state.get("tijd_zwart",      _D["tijd_zwart"]),
                 "filter_keuze":    st.session_state.get("filter_keuze",    _D["filter_keuze"]),
+                "pgn_map":         st.session_state.get("pgn_map",         _D["pgn_map"]),
             })
             st.success("Standaardinstellingen opgeslagen.")
     with _reset_col:
@@ -485,7 +497,8 @@ if start_geklikt and not st.session_state.running:
 
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     tag = f"{wit}_vs_{zw}_{timestamp}"
-    pgn_path = config.GAMES_DIR   / f"{tag}.pgn"
+    _pgn_map = Path(ss.get("pgn_map", str(config.GAMES_DIR)))
+    pgn_path = _pgn_map / f"{tag}.pgn"
     csv_path = config.RESULTS_DIR / f"{tag}.csv"
     ss.pgn_path = str(pgn_path)
     ss.csv_path = str(csv_path)
