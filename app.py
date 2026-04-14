@@ -6,6 +6,7 @@ Starten:
 """
 import datetime
 import io
+import json
 import queue
 import threading
 from pathlib import Path
@@ -16,6 +17,43 @@ import streamlit as st
 
 import config
 from tournament import run_tournament
+
+# ---------------------------------------------------------------------------
+# Standaardinstellingen — laden uit defaults.json, anders fabrieksinstellingen
+# ---------------------------------------------------------------------------
+_DEFAULTS_FILE = Path(__file__).parent / "defaults.json"
+
+_FACTORY = {
+    "wit_engine":      "stockfish18c",
+    "zwart_engine":    "berserk",
+    "kleur_modus":     "Wissel per partij",
+    "contempt_wit":    config.CONTEMPT,
+    "contempt_zwart":  0,
+    "aantal_partijen": 2,
+    "dt_wit":          "Nodes (reproduceerbaar)",
+    "dt_zwart":        "Nodes (reproduceerbaar)",
+    "nodes_wit":       500_000,
+    "nodes_zwart":     500_000,
+    "tijd_wit":        1.0,
+    "tijd_zwart":      1.0,
+    "filter_keuze":    "Alle partijen",
+}
+
+def _load_defaults() -> dict:
+    if _DEFAULTS_FILE.exists():
+        try:
+            saved = json.loads(_DEFAULTS_FILE.read_text(encoding="utf-8"))
+            return {**_FACTORY, **saved}   # gevonden waarden overschrijven fabriek
+        except Exception:
+            pass
+    return _FACTORY.copy()
+
+def _save_defaults(values: dict) -> None:
+    _DEFAULTS_FILE.write_text(
+        json.dumps(values, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
+
+_D = _load_defaults()   # actieve standaarden voor deze sessie
 
 # ---------------------------------------------------------------------------
 # Pagina-configuratie
@@ -78,16 +116,20 @@ if "progress_done"        not in st.session_state: st.session_state.progress_don
 if "progress_total"       not in st.session_state: st.session_state.progress_total       = 0
 if "running_engines"      not in st.session_state: st.session_state.running_engines      = []
 if "_last_error"          not in st.session_state: st.session_state._last_error          = None
-# Widget-defaults (alleen gezet bij eerste bezoek, daarna beheert Streamlit de state)
-if "nodes_wit"            not in st.session_state: st.session_state.nodes_wit            = 500_000
-if "nodes_zwart"          not in st.session_state: st.session_state.nodes_zwart          = 500_000
-if "tijd_wit"             not in st.session_state: st.session_state.tijd_wit             = 1.0
-if "tijd_zwart"           not in st.session_state: st.session_state.tijd_zwart           = 1.0
-if "dt_wit"               not in st.session_state: st.session_state.dt_wit               = "Nodes (reproduceerbaar)"
-if "dt_zwart"             not in st.session_state: st.session_state.dt_zwart             = "Nodes (reproduceerbaar)"
-if "contempt_wit"         not in st.session_state: st.session_state.contempt_wit         = config.CONTEMPT
-if "contempt_zwart"       not in st.session_state: st.session_state.contempt_zwart       = 0
-if "aantal_partijen"      not in st.session_state: st.session_state.aantal_partijen      = 2
+# Widget-defaults — uit defaults.json of fabrieksinstellingen
+if "nodes_wit"            not in st.session_state: st.session_state.nodes_wit            = _D["nodes_wit"]
+if "nodes_zwart"          not in st.session_state: st.session_state.nodes_zwart          = _D["nodes_zwart"]
+if "tijd_wit"             not in st.session_state: st.session_state.tijd_wit             = _D["tijd_wit"]
+if "tijd_zwart"           not in st.session_state: st.session_state.tijd_zwart           = _D["tijd_zwart"]
+if "dt_wit"               not in st.session_state: st.session_state.dt_wit               = _D["dt_wit"]
+if "dt_zwart"             not in st.session_state: st.session_state.dt_zwart             = _D["dt_zwart"]
+if "contempt_wit"         not in st.session_state: st.session_state.contempt_wit         = _D["contempt_wit"]
+if "contempt_zwart"       not in st.session_state: st.session_state.contempt_zwart       = _D["contempt_zwart"]
+if "aantal_partijen"      not in st.session_state: st.session_state.aantal_partijen      = _D["aantal_partijen"]
+if "wit_engine"           not in st.session_state: st.session_state.wit_engine           = _D["wit_engine"]
+if "zwart_engine"         not in st.session_state: st.session_state.zwart_engine         = _D["zwart_engine"]
+if "kleur_modus"          not in st.session_state: st.session_state.kleur_modus          = _D["kleur_modus"]
+if "filter_keuze"         not in st.session_state: st.session_state.filter_keuze         = _D["filter_keuze"]
 if "gebruik_beginpositie" not in st.session_state: st.session_state.gebruik_beginpositie = False
 if "invoer_methode"       not in st.session_state: st.session_state.invoer_methode       = "PGN"
 if "pgn_tekst"            not in st.session_state: st.session_state.pgn_tekst            = ""
@@ -241,6 +283,35 @@ with tab_instellingen:
         "Alleen beslissende partijen (geen remises)": "decisive",
     }
     save_filter = filter_map[filter_keuze]
+
+    st.divider()
+
+    _save_col, _reset_col, _ = st.columns([2, 2, 4])
+    with _save_col:
+        if st.button("Sla op als standaard", use_container_width=True):
+            _save_defaults({
+                "wit_engine":      st.session_state.get("wit_engine",      _D["wit_engine"]),
+                "zwart_engine":    st.session_state.get("zwart_engine",    _D["zwart_engine"]),
+                "kleur_modus":     st.session_state.get("kleur_modus",     _D["kleur_modus"]),
+                "contempt_wit":    st.session_state.get("contempt_wit",    _D["contempt_wit"]),
+                "contempt_zwart":  st.session_state.get("contempt_zwart",  _D["contempt_zwart"]),
+                "aantal_partijen": int(st.session_state.get("aantal_partijen", _D["aantal_partijen"])),
+                "dt_wit":          st.session_state.get("dt_wit",          _D["dt_wit"]),
+                "dt_zwart":        st.session_state.get("dt_zwart",        _D["dt_zwart"]),
+                "nodes_wit":       st.session_state.get("nodes_wit",       _D["nodes_wit"]),
+                "nodes_zwart":     st.session_state.get("nodes_zwart",     _D["nodes_zwart"]),
+                "tijd_wit":        st.session_state.get("tijd_wit",        _D["tijd_wit"]),
+                "tijd_zwart":      st.session_state.get("tijd_zwart",      _D["tijd_zwart"]),
+                "filter_keuze":    st.session_state.get("filter_keuze",    _D["filter_keuze"]),
+            })
+            st.success("Standaardinstellingen opgeslagen.")
+    with _reset_col:
+        if st.button("Reset naar fabrieksinstellingen", use_container_width=True):
+            if _DEFAULTS_FILE.exists():
+                _DEFAULTS_FILE.unlink()
+            for _k in _FACTORY:
+                st.session_state[_k] = _FACTORY[_k]
+            st.rerun()
 
 # ===========================================================================
 # TAB 2 — Positie
