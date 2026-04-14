@@ -77,6 +77,7 @@ if "stop_event"           not in st.session_state: st.session_state.stop_event  
 if "progress_done"        not in st.session_state: st.session_state.progress_done        = 0
 if "progress_total"       not in st.session_state: st.session_state.progress_total       = 0
 if "running_engines"      not in st.session_state: st.session_state.running_engines      = []
+if "_last_error"          not in st.session_state: st.session_state._last_error          = None
 # Widget-defaults (alleen gezet bij eerste bezoek, daarna beheert Streamlit de state)
 if "nodes_wit"            not in st.session_state: st.session_state.nodes_wit            = 500_000
 if "nodes_zwart"          not in st.session_state: st.session_state.nodes_zwart          = 500_000
@@ -91,6 +92,54 @@ if "gebruik_beginpositie" not in st.session_state: st.session_state.gebruik_begi
 if "invoer_methode"       not in st.session_state: st.session_state.invoer_methode       = "PGN"
 if "pgn_tekst"            not in st.session_state: st.session_state.pgn_tekst            = ""
 if "fen_invoer"           not in st.session_state: st.session_state.fen_invoer           = ""
+
+# ---------------------------------------------------------------------------
+# Voortgang-fragment — ververst elke seconde zonder volledige pagina-herlaad
+# ---------------------------------------------------------------------------
+@st.fragment(run_every=1.0)
+def _voortgang_fragment():
+    if not st.session_state.running:
+        return
+    q = st.session_state.progress_q
+    if q is None:
+        return
+
+    # Drain queue non-blocking: verwerk alle nieuwe berichten in één tick
+    while True:
+        try:
+            bericht = q.get_nowait()
+        except queue.Empty:
+            break
+
+        if bericht is None:
+            # Tournament klaar
+            st.session_state.running = False
+            st.rerun(scope="app")
+            return
+
+        if "__error__" in bericht:
+            st.session_state.running = False
+            st.session_state._last_error = bericht["__error__"]
+            st.rerun(scope="app")
+            return
+
+        st.session_state.progress_done  = bericht["done"]
+        st.session_state.progress_total = bericht["total"]
+        st.session_state.results.append(bericht["info"])
+
+    # Render voortgangsbalk
+    done  = st.session_state.progress_done
+    total = st.session_state.progress_total
+    if total > 0:
+        pct = done / total
+        st.progress(pct, text=f"Partij {done}/{total} — {pct*100:.0f}%")
+    else:
+        st.info("⏳ Tournament loopt...")
+
+    if st.session_state.results:
+        last = st.session_state.results[-1]
+        st.caption(f"{last['white']} vs {last['black']} — {result_emoji(last['result'])}")
+
 
 # ---------------------------------------------------------------------------
 # Tabs
@@ -257,9 +306,7 @@ with start_col:
         disabled=st.session_state.running,
         use_container_width=True,
     )
-    # Voortgangsbalk direct onder Start-knop
-    voortgang_placeholder = st.empty()
-    status_placeholder    = st.empty()
+    _voortgang_fragment()  # rendert hier; ververst elke 1s zonder pagina-herlaad
 
 with stop_col:
     stop_geklikt = st.button(
@@ -269,6 +316,13 @@ with stop_col:
     )
     if stop_geklikt and st.session_state.stop_event:
         st.session_state.stop_event.set()
+        st.session_state.running = False   # direct: UI reageert onmiddellijk
+        st.rerun()                         # herlaad zodat Start-knop meteen actief wordt
+
+# Foutmelding (buiten fragment zodat die zichtbaar blijft na herlaad)
+if st.session_state._last_error:
+    st.error(f"Tournament-fout:\n```\n{st.session_state._last_error}\n```")
+    st.session_state._last_error = None
 
 # ===========================================================================
 # TAB 3 — Resultaten (tabel + downloads)
@@ -402,59 +456,3 @@ if start_geklikt and not st.session_state.running:
     threading.Thread(target=achtergrond, daemon=True).start()
     st.rerun()
 
-# Voortgang bijhouden terwijl tournament loopt
-if st.session_state.running:
-    q = st.session_state.progress_q
-
-    # Toon altijd de actuele voortgang vanuit session_state (blijft correct na elke rerun)
-    done  = st.session_state.progress_done
-    total = st.session_state.progress_total
-    if st.session_state.stop_event and st.session_state.stop_event.is_set():
-        voortgang_placeholder.warning("⏳ Stoppen na huidige zet...")
-    elif total > 0:
-        pct = done / total
-        voortgang_placeholder.progress(pct, text=f"Partij {done}/{total} — {pct*100:.0f}%")
-    else:
-        voortgang_placeholder.info("⏳ Tournament loopt...")
-
-    while True:
-        try:
-            bericht = q.get(timeout=0.5)
-        except queue.Empty:
-            st.rerun()
-            break
-
-        if bericht is None:
-            st.session_state.running = False
-            done = st.session_state.progress_done
-            total = st.session_state.progress_total
-            if st.session_state.stop_event and st.session_state.stop_event.is_set():
-                voortgang_placeholder.warning(f"Gestopt na {done} van {total} partijen.")
-            else:
-                voortgang_placeholder.progress(1.0, text=f"Klaar! {done} van {total} partijen gespeeld.")
-            st.rerun()
-            break
-
-        if "__error__" in bericht:
-            st.session_state.running = False
-            st.error(f"Tournament-fout:\n```\n{bericht['__error__']}\n```")
-            st.rerun()
-            break
-
-        done  = bericht["done"]
-        total = bericht["total"]
-        info  = bericht["info"]
-        st.session_state.results.append(info)
-        st.session_state.progress_done  = done
-        st.session_state.progress_total = total
-
-        pct = done / total
-        voortgang_placeholder.progress(pct, text=f"Partij {done}/{total} — {pct*100:.0f}%")
-        status_placeholder.markdown(
-            f"**{info['opening']}** — {info['white']} vs {info['black']} — {result_emoji(info['result'])}"
-        )
-
-        if done >= total:
-            st.session_state.running = False
-            st.rerun()
-            break
